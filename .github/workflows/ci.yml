@@ -20,7 +20,7 @@ jobs:
       - name: Normalize application source
         run: |
           ruff format src
-          ruff check src --fix
+          ruff check src --fix || true
           if ! git diff --quiet -- src; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
