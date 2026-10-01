@@ -1,0 +1,5 @@
+Third-party dependencies are declared in pyproject.toml and apps/web/package.json.
+
+This project does not copy third-party source into its core implementation. Before a
+redistribution or licensing transaction, generate and review the dependency license
+inventory for the exact locked dependency set used for that release.

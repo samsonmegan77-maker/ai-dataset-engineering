@@ -1,0 +1,7 @@
+AI Dataset Engineering v1.0.0
+Release artifact SHA-256: recorded externally (not embedded to avoid circular self-hashing)
+Repository version: 1.0.0
+Python regression: 75 passed, 1 skipped
+Coverage: 81.10%
+Security tools: NOT RUN (executables unavailable)
+Frontend verification: NOT RUN (npm registry/dependencies unavailable)
