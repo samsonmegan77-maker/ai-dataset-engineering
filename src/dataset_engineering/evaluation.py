@@ -47,3 +47,21 @@ def evaluate_quality(records:list[dict[str,Any]], fields:list[str], dataset:str,
  duplicate_rate=1-len(signatures)/total if total else 0.0
  report=QualityReport(total_records=total,completeness=comp,uniqueness=uniq,numeric_statistics=numeric,distributions=dist,consistency=cons,diversity=div,duplicate_rate=max(0.0,duplicate_rate))
  metrics=[]; findings=[]
+
+ avg=sum(m.completeness_rate for m in comp)/len(comp) if comp else 1.0
+ for name,value in (("completeness",avg),("duplicate_rate",report.duplicate_rate)):
+  threshold=thresholds.get(name); status=_status(value,threshold)
+  metrics.append(EvaluationMetric(name=name,value=value,threshold=threshold,status=status))
+  if status!=EvaluationStatus.PASS: findings.append(EvaluationFinding(metric=name,status=status,message=f"{name} is outside configured threshold"))
+ if cons: findings.append(EvaluationFinding(metric="consistency",status=EvaluationStatus.WARN,message=f"{len(cons)} consistency finding(s) detected"))
+ statuses=[m.status for m in metrics]+[f.status for f in findings]
+ overall=EvaluationStatus.FAIL if EvaluationStatus.FAIL in statuses else EvaluationStatus.WARN if EvaluationStatus.WARN in statuses else EvaluationStatus.PASS
+ end=datetime.now(timezone.utc)
+ return report,Evaluation(evaluator="quality-engine",dataset=dataset,started_at=start,completed_at=end,metrics=metrics,findings=findings,status=overall)
+
+def _signature(record:dict[str,Any])->Any:
+ def h(value:Any)->Any:
+  if isinstance(value,dict): return tuple(sorted((k,h(v)) for k,v in value.items()))
+  if isinstance(value,list): return tuple(h(v) for v in value)
+  return value
+ return h(record)
