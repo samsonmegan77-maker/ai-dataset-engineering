@@ -32,3 +32,18 @@ def _status(value:float, threshold:Threshold|None)->EvaluationStatus:
  if threshold.minimum is not None and value<threshold.minimum:return EvaluationStatus.FAIL
  if threshold.maximum is not None and value>threshold.maximum:return EvaluationStatus.FAIL
  return EvaluationStatus.PASS
+
+def evaluate_quality(records:list[dict[str,Any]], fields:list[str], dataset:str, thresholds:dict[str,Threshold]|None=None):
+ start=datetime.now(timezone.utc); thresholds=thresholds or {}
+ schema=DatasetSchema(fields=[FieldDefinition(name=f,data_type="string") for f in fields])
+ comp=completeness(records,schema).completeness
+ uniq=uniqueness(records,fields)
+ numeric_fields=[f for f in fields if any(isinstance(r.get(f),(int,float)) and not isinstance(r.get(f),bool) for r in records)]
+ numeric=numeric_statistics(records,numeric_fields)
+ dist=distributions(records,fields)
+ cons=consistency(records,fields)
+ div=diversity(records,fields)
+ signatures={_signature(r) for r in records}; total=len(records)
+ duplicate_rate=1-len(signatures)/total if total else 0.0
+ report=QualityReport(total_records=total,completeness=comp,uniqueness=uniq,numeric_statistics=numeric,distributions=dist,consistency=cons,diversity=div,duplicate_rate=max(0.0,duplicate_rate))
+ metrics=[]; findings=[]
