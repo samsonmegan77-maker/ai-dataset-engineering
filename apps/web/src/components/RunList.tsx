@@ -1,0 +1,1 @@
+import type {ProcessingRun} from '../types/api';export function RunList({runs}:{runs:ProcessingRun[]}){return <div className="run-list">{runs.length?runs.map(r=><div className="run" key={r.id}><b>{r.operation}</b><span>{r.status}</span></div>):<p className="muted">No processing runs recorded yet.</p>}</div>}
