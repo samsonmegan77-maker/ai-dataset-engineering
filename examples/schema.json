@@ -1,0 +1,1 @@
+{"fields":[{"name":"name","data_type":"string","required":true},{"name":"age","data_type":"integer","minimum":0,"maximum":130},{"name":"country","data_type":"string","min_length":2}]}
