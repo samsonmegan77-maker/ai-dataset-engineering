@@ -1,9 +1,10 @@
 """PostgreSQL repository adapter implementing the same boundary as SQLite."""
+
 from __future__ import annotations
 
 import json
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import create_engine, text
@@ -93,8 +94,7 @@ class SQLAlchemyRepository:
             )
             connection.execute(
                 text(
-                    "CREATE INDEX IF NOT EXISTS idx_runs_input "
-                    "ON processing_runs(input_version_id)"
+                    "CREATE INDEX IF NOT EXISTS idx_runs_input ON processing_runs(input_version_id)"
                 )
             )
             connection.execute(
@@ -167,9 +167,7 @@ class SQLAlchemyRepository:
                     "record_count": version.record_count,
                     "schema_json": json.dumps(version.schema, sort_keys=True),
                     "created_at": version.created_at.isoformat(),
-                    "source_metadata_json": json.dumps(
-                        version.source_metadata, sort_keys=True
-                    ),
+                    "source_metadata_json": json.dumps(version.source_metadata, sort_keys=True),
                 },
             )
             connection.execute(
@@ -229,9 +227,7 @@ class SQLAlchemyRepository:
                     {
                         "version_id": str(version_id),
                         "record_index": index,
-                        "record_json": json.dumps(
-                            record, sort_keys=True, ensure_ascii=False
-                        ),
+                        "record_json": json.dumps(record, sort_keys=True, ensure_ascii=False),
                     }
                     for index, record in enumerate(records)
                 ],
@@ -288,9 +284,7 @@ class SQLAlchemyRepository:
                     "config_json": json.dumps(run.config, sort_keys=True),
                     "seed": run.seed,
                     "started_at": run.started_at.isoformat(),
-                    "completed_at": (
-                        run.completed_at.isoformat() if run.completed_at else None
-                    ),
+                    "completed_at": (run.completed_at.isoformat() if run.completed_at else None),
                     "output_count": run.output_count,
                     "status": run.status,
                     "manifest_json": json.dumps(run.manifest, sort_keys=True),
@@ -306,9 +300,7 @@ class SQLAlchemyRepository:
             ).first()
         return None if row is None else self._run(row)
 
-    def list_runs(
-        self, version_id: UUID | None = None
-    ) -> list[ProcessingRunRecord]:
+    def list_runs(self, version_id: UUID | None = None) -> list[ProcessingRunRecord]:
         sql = "SELECT * FROM processing_runs"
         params: dict[str, object] = {}
         if version_id:
@@ -333,9 +325,7 @@ class SQLAlchemyRepository:
                         str(run.output_version_id) if run.output_version_id else None
                     ),
                     "output_fingerprint": run.output_fingerprint,
-                    "completed_at": (
-                        run.completed_at.isoformat() if run.completed_at else None
-                    ),
+                    "completed_at": (run.completed_at.isoformat() if run.completed_at else None),
                     "output_count": run.output_count,
                     "status": run.status,
                     "manifest_json": json.dumps(run.manifest, sort_keys=True),
@@ -359,17 +349,14 @@ class SQLAlchemyRepository:
                     "type": artifact_type,
                     "resource": str(resource_id),
                     "payload": json.dumps(payload, sort_keys=True, default=str),
-                    "created": datetime.now(timezone.utc).isoformat(),
+                    "created": datetime.now(UTC).isoformat(),
                 },
             )
 
     def create_audit(self, event: AuditEventRecord) -> AuditEventRecord:
         with self.engine.begin() as connection:
             row = connection.execute(
-                text(
-                    "SELECT sequence,event_hash FROM audit_events "
-                    "ORDER BY sequence DESC LIMIT 1"
-                )
+                text("SELECT sequence,event_hash FROM audit_events ORDER BY sequence DESC LIMIT 1")
             ).first()
             sequence = (int(row[0]) + 1) if row else 1
             previous = row[1] if row else None
@@ -396,9 +383,7 @@ class SQLAlchemyRepository:
                     "resource_type": event.resource_type,
                     "resource_id": str(event.resource_id),
                     "run_id": str(event.run_id) if event.run_id else None,
-                    "metadata_json": json.dumps(
-                        event.metadata, sort_keys=True, default=str
-                    ),
+                    "metadata_json": json.dumps(event.metadata, sort_keys=True, default=str),
                     "sequence": sequence,
                     "previous_hash": previous,
                     "event_hash": digest,

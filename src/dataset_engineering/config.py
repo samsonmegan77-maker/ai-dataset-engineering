@@ -1,4 +1,5 @@
 """Environment-aware runtime configuration."""
+
 from __future__ import annotations
 
 import os
@@ -16,16 +17,12 @@ class Settings:
     environment: str = "development"
 
     @classmethod
-    def from_env(cls) -> "Settings":
-        origins = tuple(
-            x.strip() for x in os.getenv("CORS_ORIGINS", "").split(",") if x.strip()
-        )
+    def from_env(cls) -> Settings:
+        origins = tuple(x.strip() for x in os.getenv("CORS_ORIGINS", "").split(",") if x.strip())
         return cls(
             database_url=os.getenv("DATABASE_URL", cls.database_url),
             cors_origins=origins,
-            max_upload_bytes=max(
-                1, int(os.getenv("MAX_UPLOAD_BYTES", str(cls.max_upload_bytes)))
-            ),
+            max_upload_bytes=max(1, int(os.getenv("MAX_UPLOAD_BYTES", str(cls.max_upload_bytes)))),
             max_records=max(1, int(os.getenv("MAX_RECORDS", str(cls.max_records)))),
             max_page_size=max(
                 1, min(1000, int(os.getenv("MAX_PAGE_SIZE", str(cls.max_page_size))))
